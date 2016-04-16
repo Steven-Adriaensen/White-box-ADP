@@ -6,15 +6,31 @@ import java.util.Map;
 import java.util.Random;
 
 import wb.adp.DesignChoice;
-import wb.agent.StateSpace.State;
-import wb.agent.StateSpace.StateAction;
+import wb.util.Experience;
+import wb.util.StateSpace;
+import wb.util.StateSpace.State;
+import wb.util.StateSpace.StateAction;
 
+/**
+ * Implements an agent that selects action proportionally to the expected number of
+ * different future execution paths (based on its current experience)
+ * 
+ * This is useful in settings where multiple configurations correspond to the same execution path.
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class PURS implements Agent{
 	final private Random rng;
 	
 	private StateSpace ss;
 	private Map<StateAction,Integer> n;
 
+	/**
+	 * Constructs a PURS agent
+	 * 
+	 * @param rng the random generator used
+	 */
 	public PURS(Random rng){
 		this.rng = rng;
 	}

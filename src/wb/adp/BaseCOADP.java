@@ -7,14 +7,30 @@ import java.util.Map;
 
 import wb.agent.Agent;
 
-//does most of the book-keeping, enabling high-level design space implementations
+/**
+ * 
+ * This is an abstract implementation of the context-oblivious ADP.
+ * 
+ * It does most of the book-keeping associated with evaluating an agent,
+ * enabling higher level algorithm design problems implementations.
+ * 
+ * In particular it provides the following functions:
+ * - T getDecision(dc<T>) to get a the decision for a given design choice when it is needed.
+ * - feedback(double) to indicate the desirability of a given execution path.
+ * 
+ * In most COADP cases you should extend this class, 
+ * rather than implementing the AlgorithmDesignProblem interface directly.
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public abstract class BaseCOADP implements AlgorithmDesignProblem {
 	private Map<DesignChoice<?>,Integer> decisions = new HashMap<DesignChoice<?>,Integer>();
 	private LinkedList<Transition> transitions;
 	private Agent agent;
 
 	@Override
-	public List<Transition> evaluate(Agent agent) {
+	final public List<Transition> evaluate(Agent agent) {
 		decisions.clear();
 		transitions = new LinkedList<Transition>();
 		transitions.add(new Transition(null,-1));
@@ -23,7 +39,15 @@ public abstract class BaseCOADP implements AlgorithmDesignProblem {
 		return transitions;
 	}
 	
-	protected <T> T getDecision(DesignChoice<T> dc){
+	/**
+	 * Returns the decision for a given design choice.
+	 * If the design choice is still open it will query the agent for a decision.
+	 * Otherwise it will simply return the decision.
+	 * 
+	 * @param dc the design choice for which we need a decision
+	 * @return the decision the agent made for that design choice
+	 */
+	final protected <T> T getDecision(DesignChoice<T> dc){
 		int alt;
 		if(decisions.containsKey(dc)){
 			//we made design decision before
@@ -38,10 +62,24 @@ public abstract class BaseCOADP implements AlgorithmDesignProblem {
 		return dc.getAlternative(alt);
 	}
 	
-	protected void feedback(double reward){
+	/**
+	 * 
+	 * rewards/penalises the agent.
+	 * Solvers will attempt to train an agent to maximise the reward it accumulates
+	 * and as such it specifies the objective.
+	 * 
+	 * @param reward the reward
+	 */
+	final protected void feedback(double reward){
 		transitions.peekLast().reward += reward;
 	}
 	
+	/**
+	 * This method executes the algorithm with open design choices.
+	 * 
+	 * During execution it can use the getDecision and feedback methods.
+	 * 
+	 */
 	abstract public void execute();
 	
 	

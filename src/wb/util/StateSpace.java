@@ -1,18 +1,37 @@
-package wb.agent;
+package wb.util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import wb.Util;
 import wb.adp.DesignChoice;
 import wb.adp.AlgorithmDesignProblem.Transition;
 
+/**
+ * This is an auxiliary class, mapping Design Choices to integer indices.
+ * 
+ * It also provides 
+ * - convenience methods converting between both representations.
+ * - classes (compactly) representing states(actions) and transitions in the MDP_COADP.
+ * 
+ * the latter are suitable to be used as keys for hashmaps.
+ * FullTransitions are furthermore fully ordered.
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class StateSpace {
 	private final List<DesignChoice<?>> dcs; //index -> dc
 	private final Map<DesignChoice<?>,Integer> index; //dc -> index
 	private final int[] acc_a;
 	
+	/**
+	 * Creates a state space object from a given list of design choices.
+	 * The index in this list is the index of this design choice.
+	 * 
+	 * @param dcs the list of design choices
+	 */
 	public StateSpace(List<DesignChoice<?>> dcs){
 		this.dcs = dcs;
 		index = new HashMap<DesignChoice<?>,Integer>();
@@ -28,10 +47,17 @@ public class StateSpace {
 		}
 	}
 	
+	/**
+	 * @return the number of design choices in this state space
+	 */
 	public int getNumberOfDesignChoices(){
 		return dcs.size();
 	}
 	
+	/**
+	 * @param index an index
+	 * @return the design choice corresponding to given index
+	 */
 	public DesignChoice<?> index2dc(int index){
 		if(index >= 0){
 			return dcs.get(index);
@@ -40,6 +66,10 @@ public class StateSpace {
 		}
 	}
 	
+	/**
+	 * @param dc a design choice
+	 * @return the index corresponding to given design choice
+	 */
 	public int dc2index(DesignChoice<?> dc){
 		if(dc != null){
 			return index.get(dc);
@@ -48,6 +78,11 @@ public class StateSpace {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param decisions a map, mapping a subset of design choices to a decision.
+	 * @return an array representation where -1 represents an open design choice.
+	 */
 	public int[] dds2array(Map<DesignChoice<?>,Integer> decisions){
 		int[] dds = new int[dcs.size()];
 		for(int i = 0; i < dds.length; i++){
@@ -61,6 +96,16 @@ public class StateSpace {
 		return dds;
 	}
 	
+	/**
+	 * A class representing a state in the MDP_coadp
+	 * - the design decisions made thus far
+	 * - the design choice currently faced
+	 * 
+	 * This class is suitable to be used as key for a hashmap
+	 * 
+	 * @author Steven Adriaensen
+	 *
+	 */
 	public class State{
 		public int[] dds;
 		public int dc;
@@ -71,7 +116,7 @@ public class StateSpace {
 		}
 		
 		public State(State s) {
-			this.dds = Util.copyArray(s.dds);
+			this.dds = Arrays.copyOf(s.dds,s.dds.length);
 			this.dc = s.dc;
 		}
 		
@@ -110,6 +155,14 @@ public class StateSpace {
 		
 	}
 	
+	/**
+	 * A class representing a state action pair in the MDP_coadp
+	 * 
+	 * This class is suitable to be used as key for a hashmap
+	 * 
+	 * @author Steven Adriaensen
+	 *
+	 */
 	public class StateAction{
 		public State s;
 		public int dd;
@@ -147,6 +200,20 @@ public class StateSpace {
 	    }
 	}
 	
+	/**
+	 * A class representing a transition in the MDP_coadp:
+	 * - state (design choice face and decisions made thus far)
+	 * - action (decision for design choice)
+	 * the next design choice faced
+	 * 
+	 * This class is suitable to be used as key for a hashmap.
+	 * In addition it is fully ordered, furthermore this order is topological.
+	 * 
+	 * This is a property which is exploited to compute q/n in Experience, using dynamic programming.
+	 * 
+	 * @author Steven Adriaensen
+	 *
+	 */
 	public class FullTransition implements Comparable<FullTransition>{
 		public StateAction sa;
 		public int dc2;

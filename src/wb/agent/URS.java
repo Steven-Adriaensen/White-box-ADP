@@ -5,9 +5,20 @@ import java.util.Random;
 
 import wb.adp.DesignChoice;
 
+/**
+ * This agent selects an alternative uniformly at random.
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class URS implements Agent{
 	private Random rng;
 	
+	/**
+	 * Constructs a URS agent
+	 * 
+	 * @param rng the random generator used
+	 */
 	public URS(Random rng){
 		this.rng = rng;
 	}

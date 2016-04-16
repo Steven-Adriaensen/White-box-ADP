@@ -6,9 +6,26 @@ import java.util.Map;
 import java.util.Random;
 
 import wb.adp.DesignChoice;
-import wb.agent.StateSpace.State;
-import wb.agent.StateSpace.StateAction;
+import wb.util.Experience;
+import wb.util.StateSpace;
+import wb.util.StateSpace.State;
+import wb.util.StateSpace.StateAction;
 
+/**
+ * This agent will take the action it thinks is best (given its experience).
+ * Concrete, the action maximizing the expected future reward.
+ * 
+ * Ties are broken randomly. If it has no information about taking an action in a certain state, 
+ * it will assume it is worse than any other. If it ends up in a state it has no experience in, 
+ * it will select an action uniformly at random.
+ * 
+ * This agent type is returned by the white box optimizer.
+ * Note that a different agent can be used to gather experience in the training phase.
+ * (e.g. URS, PURS)
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class Greedy implements Agent{
 	final private Random rng;
 	

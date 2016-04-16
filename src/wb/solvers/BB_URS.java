@@ -4,18 +4,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import wb.Util;
-import wb.Util.ArithmeticAverage;
 import wb.adp.AlgorithmDesignProblem;
 import wb.agent.Agent;
 import wb.agent.Configuration;
-import wb.agent.StateSpace;
+import wb.util.ArithmeticAverage;
+import wb.util.StateSpace;
 
+/**
+ * A simple black-box optimizer.
+ * 
+ * It will evaluate configurations drawn uniformly at random.
+ * 
+ * For each configuration it maintains the arithmetic average of f for each configuration.
+ * It returns the configuration with the highest estimate after N evaluations.
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class BB_URS implements Solver{
 	
 	final int N;
 	final Random rng;
 	
+	/**
+	 * Constructs a BB_URS solver
+	 * 
+	 * @param N the total number of evaluations to perform
+	 * @param rng the random number generator used to select configurations
+	 */
 	public BB_URS(int N, Random rng){
 		this.N = N;
 		this.rng = rng;
@@ -23,19 +39,18 @@ public class BB_URS implements Solver{
 
 	@Override
 	public Agent solve(AlgorithmDesignProblem adp) {
-		Map<Configuration, ArithmeticAverage> results = new HashMap<Configuration, ArithmeticAverage>();
+		Map<Configuration, wb.util.ArithmeticAverage> results = new HashMap<Configuration, ArithmeticAverage>();
 		StateSpace ss = new StateSpace(adp.getDesignChoices());
 		Configuration c = Configuration.sample_uniform(ss, rng);
 		Configuration c_best = c;
 		for(int i = 0; i < N; i++){
-			double f = Util.computeF(adp.evaluate(c)); //here white box info is abstracted into a single f value
+			double f = AlgorithmDesignProblem.computeF(adp.evaluate(c)); //here white box info is abstracted into a single f value
 			updateResults(c,f,results);
 			if(getAvgF(c,results) > getAvgF(c_best,results)){
 				c_best = c;
 			}
 			c = Configuration.sample_uniform(ss, rng);
 		}
-		System.out.println(results.get(c_best).val);
 		return c_best;
 	}
 	
@@ -49,7 +64,7 @@ public class BB_URS implements Solver{
 	
 	private double getAvgF(Configuration c, Map<Configuration, ArithmeticAverage> results){
 		if(results.containsKey(c)){
-			return results.get(c).val;
+			return results.get(c).avg;
 		}else{
 			return 0;
 		}

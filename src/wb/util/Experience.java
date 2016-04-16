@@ -1,5 +1,6 @@
-package wb.agent;
+package wb.util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -8,22 +9,40 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import wb.adp.DesignChoice;
+import wb.util.StateSpace.FullTransition;
+import wb.util.StateSpace.State;
+import wb.util.StateSpace.StateAction;
 import wb.adp.AlgorithmDesignProblem.Transition;
-import wb.agent.StateSpace.FullTransition;
-import wb.agent.StateSpace.State;
-import wb.agent.StateSpace.StateAction;
-import wb.Util;
-import wb.Util.ArithmeticAverage;
 
+/**
+ * This class represents experience in the white box adp.
+ * 
+ * It is build from multiple evaluations on the same adp 
+ * (potentially using different agents)
+ * 
+ * This implementation builds a maximum likelihood estimation of the underlying MDP
+ * 
+ * @author Steven Adriaensen
+ *
+ */
 public class Experience{ //maximum likelihood estimate of MDP
 	private final StateSpace ss;
 	
 	private Map<FullTransition,ArithmeticAverage> data = new TreeMap<FullTransition,ArithmeticAverage>();
 	
+	/**
+	 * Construct a new experience instance
+	 * @param dcs the list of design choices in the adp
+	 */
 	public Experience(List<DesignChoice<?>> dcs){
 		ss = new StateSpace(dcs);
 	}
 	
+	/**
+	 * Update experience adding the result of a white box evaluation
+	 * 
+	 * @param wb_info the list of transitions observed during an evaluation
+	 */
 	public void add(List<Transition> wb_info) {
 		Map<DesignChoice<?>,Integer> decisions = new HashMap<DesignChoice<?>,Integer>();
 		
@@ -42,6 +61,12 @@ public class Experience{ //maximum likelihood estimate of MDP
 		updateData(ss.new FullTransition(decisions,t,null),t.reward);	
 	}
 	
+	/**
+	 * Computes n, a function returning the expected number of different execution paths
+	 * for each observed state (design choice + past decisions) action (decision) pair.
+	 *  
+	 * @return n
+	 */
 	public Map<StateAction,Integer> compute_n(){
 		Map<StateAction,Integer> n_values = new HashMap<StateAction,Integer>();
 		
@@ -54,7 +79,7 @@ public class Experience{ //maximum likelihood estimate of MDP
 		ArithmeticAverage avg = entry.getValue();
 		
 		StateAction sa = entry.getKey().sa;
-		int[] dds = Util.copyArray(t.sa.s.dds);
+		int[] dds = Arrays.copyOf(t.sa.s.dds,t.sa.s.dds.length);
 		dds[t.sa.s.dc] = t.sa.dd;
 		
 		while(true){
@@ -74,7 +99,7 @@ public class Experience{ //maximum likelihood estimate of MDP
 					n = 0;
 					nval = 0;
 					sa = t.sa;
-					dds = Util.copyArray(t.sa.s.dds);
+					dds = Arrays.copyOf(t.sa.s.dds,t.sa.s.dds.length);
 					if(t.sa.s.dc != -1)
 						dds[t.sa.s.dc] = t.sa.dd;
 				}
@@ -104,9 +129,10 @@ public class Experience{ //maximum likelihood estimate of MDP
 	private int getN(StateAction sa, Map<StateAction,Integer> n_values){
 		Integer v = n_values.get(sa); // fetch n value
 		if(v == null){
-			//return 1; //n-value for any state action pair that didn't occur is 1
+			return 1; //n-value for any state action pair that didn't occur is 1
 			/*
-			//actually works better
+			//alternatively, assume each combination of decisions for open design choices leads
+			//to a different execution path (works better in many cases)
 			int n = 1;
 			for(int i = 0; i < ss.getNumberOfDesignChoices(); i++){
 				if(sa.s.dds[i] == -1){
@@ -119,6 +145,12 @@ public class Experience{ //maximum likelihood estimate of MDP
 		return v;
 	}
 	
+	/**
+	 * Computes q, a function returning the expected future reward
+	 * for each observed state (design choice + past decisions) action (decision) pair.
+	 * 
+	 * @return n
+	 */
 	public Map<StateAction,Double> compute_q(){
 		Map<StateAction,Double> q = new HashMap<StateAction,Double>();
 		
@@ -131,14 +163,14 @@ public class Experience{ //maximum likelihood estimate of MDP
 		ArithmeticAverage avg = entry.getValue();
 		
 		StateAction sa = entry.getKey().sa;
-		int[] dds = Util.copyArray(t.sa.s.dds);
+		int[] dds = Arrays.copyOf(t.sa.s.dds,t.sa.s.dds.length);
 		dds[t.sa.s.dc] = t.sa.dd;
 		
 		while(true){
 			//- update n
 			n += avg.n();
 			//- update q
-			qval += avg.n() * (avg.val + getV(ss.new State(dds,t.dc2),q));
+			qval += avg.n() * (avg.avg + getV(ss.new State(dds,t.dc2),q));
 			
 			if(it.hasNext()){
 				entry = it.next();
@@ -151,7 +183,7 @@ public class Experience{ //maximum likelihood estimate of MDP
 					n = 0;
 					qval = 0;
 					sa = t.sa;
-					dds = Util.copyArray(t.sa.s.dds);
+					dds = Arrays.copyOf(t.sa.s.dds,t.sa.s.dds.length);
 					if(t.sa.s.dc != -1)
 						dds[t.sa.s.dc] = t.sa.dd;
 				}
@@ -165,6 +197,9 @@ public class Experience{ //maximum likelihood estimate of MDP
 		return q;
 	}
 	
+	/**
+	 * @return the state-space of this experience
+	 */
 	public StateSpace getStateSpace(){
 		return ss;
 	}
