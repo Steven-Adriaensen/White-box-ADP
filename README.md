@@ -14,12 +14,9 @@ If you do, we kindly ask you to acknowledge this, by citing the following articl
   year={2016} <br />
 }
 
-In summary, this paper formulates the Algorithm Design Problem (ADP) as a sequential decision process.
-Rather than making difficult design choices (e.g. numerical parameters, data-structures, algorithmic or other implementation choices in general) 
-prior to execution, we start executing an algorithm with open design choices. Whenever the next instruction depends on the decision
-made for any of these a choice point is reached and an agent is queried for a decision. A special feedback instruction is
-used to reward the agent during execution and allows us to specify the desirability of any execution path. 
-The solution to the ADP is then an agent maximizing the acumulated reward for any given input. 
+In summary, this paper formulates the Algorithm Design Problem (ADP) as a sequential decision process. Rather than making difficult design choices (e.g. numerical parameters, data-structures, algorithmic or other implementation choices in general) 
+prior to execution, we start executing an algorithm with open design choices. Whenever the next instruction depends on the decision made for any of these, a choice point is reached and an agent is queried for a decision. A special feedback instruction is
+used to reward the agent during execution and allows us to specify the desirability of any execution path. The solution to the ADP is then an agent maximizing the acumulated reward for any given input. 
 
 Please refer to this article for more detailed information.
 

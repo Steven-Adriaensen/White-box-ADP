@@ -26,7 +26,7 @@ public class Example {
 		//decide how many evaluations to perform
 		final int N = 1000;
 		//initialise the random generator used with a fixed seed (execution will be deterministic)
-		final Random rng = new Random(0x12345678); 
+		final Random rng = new Random(0); 
 		
 		//create an instance of the algorithm design problem you wish to solve
 		AlgorithmDesignProblem adp;
